@@ -1,0 +1,136 @@
+{
+  "templates": [
+      {
+          "id": "quality_checklist",
+          "label": "Quality Checklist",
+          "fields": [
+              {
+                  "id": "group1",
+                  "type": "separator",
+                  "label": "Code Quality",
+                  "description": "Ensure the code meets quality standards."
+              },
+              {
+                  "id": "check1",
+                  "type": "check",
+                  "label": "Code Review",
+                  "description": "Conduct a thorough code review.",
+                  "status": 0
+              },
+              {
+                  "id": "check2",
+                  "type": "check",
+                  "label": "Unit Testing",
+                  "description": "Ensure all unit tests pass.",
+                  "status": 0
+              },
+              {
+                  "id": "group2",
+                  "type": "separator",
+                  "label": "Documentation",
+                  "description": "Ensure all necessary documentation is complete."
+              },
+              {
+                  "id": "check3",
+                  "type": "check",
+                  "label": "API Documentation",
+                  "description": "Document all API endpoints.",
+                  "status": 0
+              },
+              {
+                  "id": "check4",
+                  "type": "check",
+                  "label": "User Guides",
+                  "description": "Create user guides for end-users.",
+                  "status": 0
+              },
+              {
+                  "id": "group3",
+                  "type": "separator",
+                  "label": "Performance",
+                  "description": "Ensure the application performs well."
+              },
+              {
+                  "id": "check5",
+                  "type": "check",
+                  "label": "Load Testing",
+                  "description": "Conduct load testing to ensure performance under stress.",
+                  "status": 0
+              },
+              {
+                  "id": "check6",
+                  "type": "check",
+                  "label": "Optimization",
+                  "description": "Optimize code for better performance.",
+                  "status": 0
+              }
+          ]
+      },
+      {
+          "id": "security_checklist",
+          "label": "Security Checklist",
+          "fields": [
+              {
+                  "id": "group1",
+                  "type": "separator",
+                  "label": "Authentication",
+                  "description": "Ensure secure authentication mechanisms."
+              },
+              {
+                  "id": "check1",
+                  "type": "check",
+                  "label": "Password Policies",
+                  "description": "Implement strong password policies.",
+                  "status": 0
+              },
+              {
+                  "id": "check2",
+                  "type": "check",
+                  "label": "Multi-Factor Authentication",
+                  "description": "Enable multi-factor authentication.",
+                  "status": 0
+              },
+              {
+                  "id": "group2",
+                  "type": "separator",
+                  "label": "Data Protection",
+                  "description": "Ensure data is protected at all times."
+              },
+              {
+                  "id": "check3",
+                  "type": "check",
+                  "label": "Encryption",
+                  "description": "Encrypt sensitive data.",
+                  "status": 0
+              },
+              {
+                  "id": "check4",
+                  "type": "check",
+                  "label": "Data Backup",
+                  "description": "Regularly backup data.",
+                  "status": 0
+              },
+              {
+                  "id": "group3",
+                  "type": "separator",
+                  "label": "Network Security",
+                  "description": "Ensure the network is secure."
+              },
+              {
+                  "id": "check5",
+                  "type": "check",
+                  "label": "Firewall",
+                  "description": "Implement a robust firewall.",
+                  "status": 0
+              },
+              {
+                  "id": "check6",
+                  "type": "check",
+                  "label": "Intrusion Detection",
+                  "description": "Set up intrusion detection systems.",
+                  "status": 0
+              }
+          ]
+      }
+  ]
+}

@@ -1,0 +1,55 @@
+modules:
+  jira:projectSettingsPage:
+    - key: checklist-jira-extension-project-settings-page
+      resource: main-settings-page
+      title: Checklist Configuration
+      resolver: 
+        function: resolver
+  jira:issuePanel:
+    - key: checklist-jira-extension-issue-panel
+      resource: main-panel
+      title: Checklist
+      resolver:
+        function: resolver
+      icon: https://imahiro-t.github.io/checklist-jira-extension/checklist.png
+  jira:entityProperty:
+    - key: "checklist-jira-extension-entity-property"
+      entityType: "issue"
+      propertyKey: checklist_result
+      values:
+        - path: todo
+          type: number
+          searchAlias: ChecklistTodo
+        - path: in_progress
+          type: number
+          searchAlias: ChecklistInProgress
+        - path: skipped
+          type: number
+          searchAlias: ChecklistSkipped
+        - path: done
+          type: number
+          searchAlias: ChecklistDone
+  function:
+    - key: resolver
+      handler: index.handler
+resources:
+  - key: main-panel
+    path: static/panel/build
+  - key: main-settings-page
+    path: static/settings/build
+app:
+  runtime:
+    name: nodejs18.x
+  id: ari:cloud:ecosystem::app/9a677867-b652-4569-b12f-7a4925eeb27b
+permissions:
+  external:
+    fetch:
+      client:
+        - '*'
+  content:
+    styles:
+      - unsafe-inline
+  scopes:
+    - manage:jira-project
+    - read:jira-work
+    - write:jira-work

@@ -9,7 +9,6 @@ import ChevronDownIcon from "@atlaskit/icon/glyph/chevron-down";
 import ChevronUpIcon from "@atlaskit/icon/glyph/chevron-up";
 import ShortcutIcon from "@atlaskit/icon/glyph/shortcut";
 import SectionMessage from "@atlaskit/section-message";
-import Toggle from "@atlaskit/toggle";
 import { useThemeObserver, token } from "@atlaskit/tokens";
 import { invoke, view, router } from "@forge/bridge";
 
@@ -272,17 +271,27 @@ const Config = ({
   closeConfiguration,
 }) => {
   const [templateSelectStatuses, setTemplateSelectStatuses] = useState();
-  const [isTrashRemovedTemplates, setIsTrashRemovedTemplates] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const templates = projectProperty.templates ?? [];
   const checklists = issueProperty.checklists ?? [];
+  const removedTemplates = structuredClone(
+    checklists.filter(
+      (checklist) => !templates.find((template) => template.id === checklist.id)
+    )
+  );
 
   useEffect(() => {
     const templateSelectStatuses = templates.map((template) => ({
       id: template.id,
       selected: !!checklists.find((checklist) => checklist.id === template.id),
     }));
-    setTemplateSelectStatuses(templateSelectStatuses);
+    const removedTemplateSelectStatuses = removedTemplates.map((template) => ({
+      id: template.id,
+      selected: true,
+    }));
+    setTemplateSelectStatuses(
+      templateSelectStatuses.concat(removedTemplateSelectStatuses)
+    );
   }, []);
 
   const handleTemplateCheckbox = (id) => (event) => {
@@ -298,23 +307,19 @@ const Config = ({
     setTemplateSelectStatuses(nweTemplatesSelectStatus);
   };
 
-  const handleTrashRemovedTemplatesToggle = (event) => {
-    setIsTrashRemovedTemplates(event.target.checked);
-  };
-
   const saveConfiguration = (event) => {
     setIsSaving(true);
-    const selectedChecklists = templateSelectStatuses
+    const newChecklists = templateSelectStatuses
       .filter((selectStatus) => selectStatus.selected)
-      .map((selectStatus) =>
-        templates.find((template) => template.id === selectStatus.id)
-      );
-    const removedTemplateChecklists = checklists.filter(
-      (checklist) => !templates.find((template) => template.id === checklist.id)
-    );
-    const newChecklists = isTrashRemovedTemplates
-      ? selectedChecklists
-      : removedTemplateChecklists.concat(selectedChecklists);
+      .map((selectStatus) => {
+        const template = templates.find(
+          (template) => template.id === selectStatus.id
+        );
+        const removedTemplate = removedTemplates.find(
+          (template) => template.id === selectStatus.id
+        );
+        return template ?? removedTemplate;
+      });
     newChecklists.forEach((newChecklist) => {
       const foundChecklist = checklists.find(
         (checklist) => checklist.id === newChecklist.id
@@ -346,6 +351,16 @@ const Config = ({
       });
   };
 
+  const checkboxStyles = {
+    ".MuiButtonBase-root": {
+      width: 24,
+      padding: 0,
+      margin: "0 4px 0 4px",
+    },
+    ".MuiSvgIcon-root": { width: 18 },
+    ".MuiFormControlLabel-label": { fontSize: 13 },
+  };
+
   return (
     <>
       <Box padding="space.100"></Box>
@@ -353,54 +368,60 @@ const Config = ({
         <Box padding="space.050">
           <Text weight="bold">Configuration</Text>
         </Box>
-        <Box padding="space.050">
-          <Text size="small" weight="bold">
-            Templates
-          </Text>
-          {}
-          {templateSelectStatuses &&
-            templates.map((template) => {
-              const checkboxStyles = {
-                ".MuiButtonBase-root": {
-                  width: 24,
-                  padding: 0,
-                  margin: "0 4px 0 4px",
-                },
-                ".MuiSvgIcon-root": { width: 18 },
-                ".MuiFormControlLabel-label": { fontSize: 13 },
-              };
-
-              return (
-                <Stack>
-                  <FormControlLabel
-                    sx={checkboxStyles}
-                    label={template.label}
-                    control={
-                      <Checkbox
-                        checked={
-                          templateSelectStatuses.find((selectedTemplate) => {
-                            return selectedTemplate.id == template.id;
-                          }).selected
-                        }
-                        onChange={handleTemplateCheckbox(template.id)}
-                      />
-                    }
-                  />
-                </Stack>
-              );
-            })}{" "}
-        </Box>
-        <Box padding="space.050">
-          <Stack>
-            <Text size="small" weight="bold">
-              Replace templates
-            </Text>
-            <Toggle
-              onChange={handleTrashRemovedTemplatesToggle}
-              isChecked={isTrashRemovedTemplates}
-            />
-          </Stack>
-        </Box>
+        {templateSelectStatuses && (
+          <Box padding="space.050">
+            {templates.length > 0 && (
+              <Stack>
+                <Text size="small" weight="bold">
+                  Templates
+                </Text>
+              </Stack>
+            )}
+            {templates.map((template) => (
+              <Stack>
+                <FormControlLabel
+                  sx={checkboxStyles}
+                  label={template.label}
+                  control={
+                    <Checkbox
+                      checked={
+                        templateSelectStatuses.find((selectedTemplate) => {
+                          return selectedTemplate.id == template.id;
+                        }).selected
+                      }
+                      onChange={handleTemplateCheckbox(template.id)}
+                    />
+                  }
+                />
+              </Stack>
+            ))}
+            {removedTemplates.length > 0 && (
+              <Stack>
+                <Text size="small" weight="bold">
+                  Removed Templates
+                </Text>
+              </Stack>
+            )}
+            {removedTemplates.map((template) => (
+              <Stack>
+                <FormControlLabel
+                  sx={checkboxStyles}
+                  label={template.label}
+                  control={
+                    <Checkbox
+                      checked={
+                        templateSelectStatuses.find((selectedTemplate) => {
+                          return selectedTemplate.id == template.id;
+                        }).selected
+                      }
+                      onChange={handleTemplateCheckbox(template.id)}
+                    />
+                  }
+                />
+              </Stack>
+            ))}
+          </Box>
+        )}
         <Box padding="space.050">
           <ButtonGroup>
             <Button

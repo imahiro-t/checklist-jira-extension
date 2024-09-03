@@ -129,18 +129,46 @@ const View = ({ project, issue }) => {
   }, []);
 
   useEffect(() => {
-    invoke("getIssueProperty", {
-      issueId: issue.id,
-    }).then((data) => {
-      const styledData =
-        !data || !data.checklists
-          ? {
-              checklists: [],
-            }
-          : data;
-      resetIssueProperty(styledData);
-    });
-  }, []);
+    if (projectProperty) {
+      invoke("getIssueProperty", {
+        issueId: issue.id,
+      }).then((data) => {
+        const styledData =
+          !data || !data.checklists
+            ? {
+                checklists: [],
+              }
+            : data;
+
+        styledData.checklists.forEach((checklist) => {
+          const template = structuredClone(projectProperty).templates.find(
+            (template) => template.id === checklist.id
+          );
+          if (template) {
+            checklist.label = template.label;
+            template.fields.forEach((templateField) => {
+              const field = checklist.fields.find(
+                (field) => field.id === templateField.id
+              );
+              if (field) {
+                templateField.status = field.status;
+              }
+            });
+            checklist.fields = template.fields;
+          }
+        });
+        const newIssueProperty = { checklists: styledData.checklists };
+        invoke("setIssueProperty", {
+          data: newIssueProperty,
+          issueId: issue.id,
+        }).then((data) => {
+          if (data) {
+            resetIssueProperty(newIssueProperty);
+          }
+        });
+      });
+    }
+  }, [projectProperty]);
 
   const resetIssueProperty = (data) => {
     setIssueProperty(data);

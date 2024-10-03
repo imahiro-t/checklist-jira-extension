@@ -105,8 +105,10 @@ const setIssueProperty = async (data, issueId) => {
 
 const calcSumUp = (data) => {
   const checklists = data.checklists ?? [];
+  const titles = [];
   const checklistAcc = checklists.reduce(
     (acc, checklist) => {
+      titles.push(checklist.label);
       const fields = checklist.fields ?? [];
       const fieldAcc = fields.reduce(
         (acc, field) => {
@@ -125,6 +127,7 @@ const calcSumUp = (data) => {
     [0, 0, 0, 0]
   );
   return {
+    title: titles.join(" | "),
     todo: checklistAcc[0],
     in_progress: checklistAcc[1],
     skipped: checklistAcc[2],

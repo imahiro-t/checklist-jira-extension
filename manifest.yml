@@ -17,6 +17,9 @@ modules:
       entityType: "issue"
       propertyKey: checklist_result
       values:
+        - path: title
+          type: text
+          searchAlias: ChecklistTitle
         - path: todo
           type: number
           searchAlias: ChecklistTodo

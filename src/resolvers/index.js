@@ -5,11 +5,11 @@ const PROPERTY_KEY = "checklist_settings_key";
 const CHECKLIST_ISSUE_PROPERTY_KEY = "checklist_issue_settings_key";
 const CHECKLIST_RESULT_KEY = "checklist_result";
 
-const deflateJson = (gherkins) => {
+const deflateJson = (body) => {
   const zlib = require("node:zlib");
   return JSON.stringify({
     v: zlib
-      .deflateRawSync(Buffer.from(JSON.stringify(gherkins)))
+      .deflateRawSync(Buffer.from(JSON.stringify(body)))
       .toString("base64"),
   });
 };

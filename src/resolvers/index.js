@@ -5,6 +5,26 @@ const PROPERTY_KEY = "checklist_settings_key";
 const CHECKLIST_ISSUE_PROPERTY_KEY = "checklist_issue_settings_key";
 const CHECKLIST_RESULT_KEY = "checklist_result";
 
+const deflateJson = (gherkins) => {
+  const zlib = require("node:zlib");
+  return JSON.stringify({
+    v: zlib
+      .deflateRawSync(Buffer.from(JSON.stringify(gherkins)))
+      .toString("base64"),
+  });
+};
+
+const inflateJson = (json) => {
+  const zlib = require("node:zlib");
+  if (json["value"]["v"]) {
+    return JSON.parse(
+      zlib.inflateRawSync(Buffer.from(json["value"]["v"], "base64")).toString()
+    );
+  } else {
+    return json["value"];
+  }
+};
+
 const getProjectProperty = async (projectId) => {
   if (!projectId) {
     return {};
@@ -22,7 +42,7 @@ const getProjectProperty = async (projectId) => {
   if (response.status !== 200) {
     return {};
   }
-  return (await response.json())["value"];
+  return inflateJson(await response.json());
 };
 
 const setProjectProperty = async (data, projectId) => {
@@ -37,7 +57,7 @@ const setProjectProperty = async (data, projectId) => {
           Accept: "application/json",
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(body),
+        body: deflateJson(body),
       }
     );
   if (response.status !== 200 && response.status !== 201) {
@@ -63,7 +83,7 @@ const getIssueProperty = async (issueId) => {
   if (response.status !== 200) {
     return {};
   }
-  return (await response.json())["value"];
+  return inflateJson(await response.json());
 };
 
 const setIssueProperty = async (data, issueId) => {
@@ -78,7 +98,7 @@ const setIssueProperty = async (data, issueId) => {
           Accept: "application/json",
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(body),
+        body: deflateJson(body),
       }
     );
   try {

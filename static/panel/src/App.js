@@ -674,9 +674,7 @@ const Checklist = ({ issue, checklistId, issueProperty, setIssueProperty }) => {
                       : "color.text"
                   }
                 >
-                  {sliceTextByMarkdownLink(field.description).map(
-                    (text) => text
-                  )}
+                  {sliceTextByMarkdownLink(field.description ?? "")}
                 </Text>
               </Box>
             );

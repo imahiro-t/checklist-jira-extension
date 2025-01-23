@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-import { Box, Inline, Stack, Text } from "@atlaskit/primitives";
+import { Box, Inline, Stack, Text, xcss } from "@atlaskit/primitives";
 import { ButtonGroup } from "@atlaskit/button";
 import Button, { IconButton } from "@atlaskit/button/new";
 import Lozenge from "@atlaskit/lozenge";
@@ -8,6 +8,9 @@ import SVG from "@atlaskit/icon/svg";
 import ChevronDownIcon from "@atlaskit/icon/glyph/chevron-down";
 import ChevronUpIcon from "@atlaskit/icon/glyph/chevron-up";
 import ShortcutIcon from "@atlaskit/icon/glyph/shortcut";
+import EditorNoteIcon from "@atlaskit/icon/glyph/editor/note";
+import EditorDoneIcon from "@atlaskit/icon/glyph/editor/done";
+import EditorCloseIcon from "@atlaskit/icon/glyph/editor/close";
 import SectionMessage from "@atlaskit/section-message";
 import { useThemeObserver, token } from "@atlaskit/tokens";
 import { invoke, view, router } from "@forge/bridge";
@@ -19,6 +22,7 @@ import FormControl from "@mui/material/FormControl";
 import Divider from "@mui/material/Divider";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
+import TextField from "@mui/material/TextField";
 
 const App = () => {
   const [context, setContext] = useState();
@@ -152,6 +156,7 @@ const View = ({ project, issue }) => {
               );
               if (field) {
                 templateField.status = field.status;
+                templateField.note = field.note ?? "";
               }
             });
             checklist.fields = template.fields;
@@ -372,6 +377,7 @@ const Config = ({
           );
           if (foundField) {
             newField["status"] = foundField["status"];
+            newField["note"] = foundField["note"] ?? "";
           }
         });
       }
@@ -484,6 +490,9 @@ const Config = ({
 
 const Checklist = ({ issue, checklistId, issueProperty, setIssueProperty }) => {
   const [checklist, setChecklist] = useState();
+  const [openNoteIndex, setOpenNoteIndex] = useState(-1);
+  const openNote = (id) => setOpenNoteIndex(id);
+  const closeNote = () => setOpenNoteIndex(-1);
   useEffect(() => {
     setChecklist(issueProperty.checklists.find((c) => c.id === checklistId));
   }, [issueProperty]);
@@ -503,15 +512,7 @@ const Checklist = ({ issue, checklistId, issueProperty, setIssueProperty }) => {
         });
       }
     });
-    setIssueProperty(newIssueProperty);
-    invoke("setIssueProperty", {
-      data: newIssueProperty,
-      issueId: issue.id,
-    }).then((data) => {
-      if (data !== true) {
-        setIssueProperty(issueProperty);
-      }
-    });
+    updateProperty(issueProperty, newIssueProperty);
   };
 
   const handleChange = (id) => (event) => {
@@ -525,6 +526,10 @@ const Checklist = ({ issue, checklistId, issueProperty, setIssueProperty }) => {
         });
       }
     });
+    updateProperty(issueProperty, newIssueProperty);
+  };
+
+  const updateProperty = (issueProperty, newIssueProperty) => {
     setIssueProperty(newIssueProperty);
     invoke("setIssueProperty", {
       data: newIssueProperty,
@@ -613,6 +618,14 @@ const Checklist = ({ issue, checklistId, issueProperty, setIssueProperty }) => {
               minHeight: 20,
               padding: "2px 20px 2px 5.5px !important",
             };
+            const stackStyles = xcss({
+              borderColor: "color.border.information",
+              backgroundColor: "color.background.information",
+              borderStyle: "solid",
+              borderRadius: "3px",
+              borderWidth: "border.width",
+              padding: "3px",
+            });
 
             return (
               <Box padding="space.050">
@@ -657,6 +670,13 @@ const Checklist = ({ issue, checklistId, issueProperty, setIssueProperty }) => {
                           </MenuItem>
                         </Select>
                       </FormControl>
+                      <IconButton
+                        icon={EditorNoteIcon}
+                        isDisabled={openNoteIndex === field.id}
+                        appearance="subtle"
+                        spacing="compact"
+                        onClick={() => openNote(field.id)}
+                      ></IconButton>
                     </Inline>
                   </Inline>
                 )}
@@ -676,10 +696,92 @@ const Checklist = ({ issue, checklistId, issueProperty, setIssueProperty }) => {
                 >
                   {sliceTextByMarkdownLink(field.description ?? "")}
                 </Text>
+                {openNoteIndex !== field.id &&
+                  (field.note ?? "").length > 0 && (
+                    <Stack xcss={stackStyles}>
+                      {field.note.split("\n").map((line) => (
+                        <Text size="small">
+                          {sliceTextByMarkdownLink(line)}
+                        </Text>
+                      ))}
+                    </Stack>
+                  )}
+                {openNoteIndex === field.id && (
+                  <NoteEditor
+                    targetField={field}
+                    checklistId={checklistId}
+                    issueProperty={issueProperty}
+                    updateProperty={updateProperty}
+                    closeNote={closeNote}
+                  />
+                )}
               </Box>
             );
           })}{" "}
       </Box>
+    </>
+  );
+};
+
+const NoteEditor = ({
+  targetField,
+  checklistId,
+  issueProperty,
+  updateProperty,
+  closeNote,
+}) => {
+  const [note, setNote] = useState(targetField?.note ?? "");
+
+  const handleNoteChange = (data) => {
+    setNote(data.target.value);
+  };
+
+  const saveNote = () => {
+    const newIssueProperty = structuredClone(issueProperty);
+    newIssueProperty.checklists.forEach((checklist) => {
+      if (checklist.id === checklistId) {
+        checklist.fields.forEach((field) => {
+          if (field.id === targetField?.id) {
+            field.note = note;
+          }
+        });
+      }
+    });
+    updateProperty(issueProperty, newIssueProperty);
+    closeNote();
+  };
+
+  const textFieldStyles = {
+    ".MuiInputBase-root": {
+      fontSize: 11,
+      fontWeight: 100,
+      padding: "4px",
+    },
+  };
+
+  return (
+    <>
+      <Inline>
+        <TextField
+          value={note}
+          onChange={handleNoteChange}
+          multiline
+          fullWidth
+          sx={textFieldStyles}
+        />
+        <IconButton
+          icon={EditorDoneIcon}
+          appearance="subtle"
+          spacing="compact"
+          onClick={saveNote}
+        ></IconButton>
+        <IconButton
+          icon={EditorCloseIcon}
+          appearance="subtle"
+          spacing="compact"
+          onClick={closeNote}
+        ></IconButton>
+      </Inline>
     </>
   );
 };

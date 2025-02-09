@@ -14,7 +14,7 @@
   "dependencies": {
     "@forge/bridge": "4.2.0",
     "@forge/react": "10.10.1",
-    "@forge/resolver": "1.6.3",
+    "@forge/resolver": "1.6.4",
     "react": "^19.0.0"
   }
 }

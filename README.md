@@ -8,6 +8,10 @@ Issue panel for ToDo Checklist.
 
 ## Release Notes
 
+### 0.0.3
+
+- ✨ Improve update efficiency with differential updates
+
 ### 0.0.2
 
 - ⚡️ compress issue property

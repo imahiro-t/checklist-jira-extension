@@ -112,6 +112,7 @@ const View = ({ project, issue }) => {
   const [isConfigurationOpen, setIsConfigurationOpen] = useState(false);
   const [isInvalid, setIsInvalid] = useState(false);
   const [isChecklistsOpen, setIsChecklistsOpen] = useState([]);
+  const [isUpdating, setIsUpdating] = useState(false);
   const openConfiguration = () => setIsConfigurationOpen(true);
   const closeConfiguration = () => setIsConfigurationOpen(false);
 
@@ -269,6 +270,8 @@ const View = ({ project, issue }) => {
                 checklistId={checklist.id}
                 issueProperty={issueProperty}
                 setIssueProperty={setIssueProperty}
+                isUpdating={isUpdating}
+                setIsUpdating={setIsUpdating}
               />
             )}
           </>
@@ -488,7 +491,14 @@ const Config = ({
   );
 };
 
-const Checklist = ({ issue, checklistId, issueProperty, setIssueProperty }) => {
+const Checklist = ({
+  issue,
+  checklistId,
+  issueProperty,
+  setIssueProperty,
+  isUpdating,
+  setIsUpdating,
+}) => {
   const [checklist, setChecklist] = useState();
   const [openNoteIndex, setOpenNoteIndex] = useState(-1);
   const openNote = (id) => setOpenNoteIndex(id);
@@ -530,15 +540,60 @@ const Checklist = ({ issue, checklistId, issueProperty, setIssueProperty }) => {
   };
 
   const updateProperty = (issueProperty, newIssueProperty) => {
-    setIssueProperty(newIssueProperty);
-    invoke("setIssueProperty", {
-      data: newIssueProperty,
-      issueId: issue.id,
-    }).then((data) => {
-      if (data !== true) {
-        setIssueProperty(issueProperty);
+    const diff = [];
+
+    issueProperty.checklists.forEach((oldChecklist) => {
+      const newChecklist = newIssueProperty.checklists.find(
+        (c) => c.id === oldChecklist.id
+      );
+      if (newChecklist) {
+        oldChecklist.fields.forEach((oldField) => {
+          const newField = newChecklist.fields.find(
+            (f) => f.id === oldField.id
+          );
+          if (newField) {
+            const changes = {};
+
+            if (oldField.status !== newField.status) {
+              changes.status = newField.status;
+            }
+
+            if ((oldField.note || "") !== (newField.note || "")) {
+              changes.note = newField.note || "";
+            }
+
+            if (Object.keys(changes).length > 0) {
+              diff.push({
+                checklistId: oldChecklist.id,
+                fieldId: oldField.id,
+                changes,
+              });
+            }
+          }
+        });
       }
     });
+
+    setIssueProperty(newIssueProperty);
+
+    if (diff.length > 0) {
+      setIsUpdating(true);
+      invoke("updateIssuePropertyDiff", {
+        diff,
+        issueId: issue.id,
+      })
+        .then((data) => {
+          const { checklists } = data;
+          if (checklists) {
+            setIssueProperty(data);
+          } else {
+            setIssueProperty(issueProperty);
+          }
+        })
+        .finally(() => {
+          setIsUpdating(false);
+        });
+    }
   };
 
   const Link = ({ children, href }) => {
@@ -635,7 +690,9 @@ const Checklist = ({ issue, checklistId, issueProperty, setIssueProperty }) => {
                       <FormControlLabel
                         sx={checkboxStyles}
                         label={field.label}
-                        disabled={field.status === FIELD_STATUS.SKIPPED}
+                        disabled={
+                          field.status === FIELD_STATUS.SKIPPED || isUpdating
+                        }
                         control={
                           <Checkbox
                             checked={field.status === FIELD_STATUS.DONE}
@@ -649,6 +706,7 @@ const Checklist = ({ issue, checklistId, issueProperty, setIssueProperty }) => {
                         <Select
                           value={field.status}
                           onChange={handleChange(field.id)}
+                          disabled={isUpdating}
                           MenuProps={{
                             autoFocus: false,
                             disableAutoFocusItem: true,
@@ -713,6 +771,7 @@ const Checklist = ({ issue, checklistId, issueProperty, setIssueProperty }) => {
                     issueProperty={issueProperty}
                     updateProperty={updateProperty}
                     closeNote={closeNote}
+                    isUpdating={isUpdating}
                   />
                 )}
               </Box>
@@ -729,6 +788,7 @@ const NoteEditor = ({
   issueProperty,
   updateProperty,
   closeNote,
+  isUpdating,
 }) => {
   const [note, setNote] = useState(targetField?.note ?? "");
 
@@ -774,6 +834,7 @@ const NoteEditor = ({
           appearance="subtle"
           spacing="compact"
           onClick={saveNote}
+          isDisabled={isUpdating}
         ></IconButton>
         <IconButton
           icon={EditorCloseIcon}

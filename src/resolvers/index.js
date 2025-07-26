@@ -177,4 +177,26 @@ resolver.define("setIssueProperty", async (req) => {
   return await setIssueProperty(data, issueId);
 });
 
+resolver.define("updateIssuePropertyDiff", async (req) => {
+  const { diff, issueId } = req.payload;
+  const currentProperty = await getIssueProperty(issueId);
+  if (!currentProperty || !currentProperty.checklists) {
+    return false;
+  }
+  const updatedProperty = structuredClone(currentProperty);
+  diff.forEach(({ checklistId, fieldId, changes }) => {
+    const checklist = updatedProperty.checklists.find(
+      (c) => c.id === checklistId
+    );
+    if (checklist) {
+      const field = checklist.fields.find((f) => f.id === fieldId);
+      if (field) {
+        Object.assign(field, changes);
+      }
+    }
+  });
+  const ret = await setIssueProperty(updatedProperty, issueId);
+  return ret ? updatedProperty : false;
+});
+
 export const handler = resolver.getDefinitions();

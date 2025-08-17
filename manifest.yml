@@ -3,7 +3,7 @@ modules:
     - key: checklist-jira-extension-project-settings-page
       resource: main-settings-page
       title: Checklist Configuration
-      resolver: 
+      resolver:
         function: resolver
   jira:issuePanel:
     - key: checklist-jira-extension-issue-panel
@@ -42,13 +42,13 @@ resources:
     path: static/settings/build
 app:
   runtime:
-    name: nodejs18.x
+    name: nodejs20.x
   id: ari:cloud:ecosystem::app/9a677867-b652-4569-b12f-7a4925eeb27b
 permissions:
   external:
     fetch:
       client:
-        - '*'
+        - "*"
   content:
     styles:
       - unsafe-inline

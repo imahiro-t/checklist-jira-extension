@@ -15,6 +15,6 @@
     "@forge/bridge": "5.9.1",
     "@forge/react": "11.8.1",
     "@forge/resolver": "1.6.8",
-    "react": "^19.2.0"
+    "react": "^19.2.1"
   }
 }

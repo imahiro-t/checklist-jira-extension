@@ -8,7 +8,7 @@
     "lint": "./node_modules/.bin/eslint src/**/*"
   },
   "devDependencies": {
-    "eslint": "^9.39.1",
+    "eslint": "^9.39.2",
     "eslint-plugin-react-hooks": "^5.2.0"
   },
   "dependencies": {
